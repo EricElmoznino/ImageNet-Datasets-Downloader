@@ -304,7 +304,11 @@ def get_image(img_url):
 
     with Image.open(io.BytesIO(img_resp.content)) as img:
         img = img.resize((224, 224))
-        img.save(img_file_path)
+        try:
+            img.save(img_file_path)
+        except:
+            return finish('failure')
+
 
         with lock:
             class_images.value += 1
