@@ -7,8 +7,10 @@ import json
 import time
 import logging
 import csv
+from PIL import Image
+import io
 
-from multiprocessing import Pool, Process, Value, Lock
+from multiprocessing import Pool, Value, Lock
 
 from requests.exceptions import ConnectionError, ReadTimeout, TooManyRedirects, MissingSchema, InvalidURL
 
@@ -83,7 +85,7 @@ elif args.use_class_list == False:
 print("Picked the following clases:")
 print([ class_info_dict[class_wnid]['class_name'] for class_wnid in classes_to_scrape ])
 
-imagenet_images_folder = os.path.join(args.data_root, 'imagenet_images')
+imagenet_images_folder = os.path.join(args.data_root, 'imagenet')
 if not os.path.isdir(imagenet_images_folder):
     os.mkdir(imagenet_images_folder)
 
@@ -300,8 +302,9 @@ def get_image(img_url):
     img_file_path = os.path.join(class_folder, img_name)
     logging.debug(f'Saving image in {img_file_path}')
 
-    with open(img_file_path, 'wb') as img_f:
-        img_f.write(img_resp.content)
+    with Image.open(io.BytesIO(img_resp.content)) as img:
+        img = img.resize((224, 224))
+        img.save(img_file_path)
 
         with lock:
             class_images.value += 1
